@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYSTEM COMPROMISED // DATA LEAK STREAM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --term-green: #0f0;
+            --term-green-dim: rgba(0, 255, 0, 0.4);
+            --term-bg: #050505;
+        }
+
+        body {
+            background-color: var(--term-bg);
+            color: var(--term-green);
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            margin: 0;
+            height: 100dvh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 4px rgba(0, 255, 0, 0.6), 0 0 10px rgba(0, 255, 0, 0.4);
+            color: var(--term-green);
+        }
+        
+        .neon-text-red {
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.8), 0 0 15px rgba(255, 0, 0, 0.5);
+            color: #ff3333;
+        }
+
+        .neon-border {
+            border: 1px solid var(--term-green-dim);
+            box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.05), 0 0 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 50;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+        
+        .crt::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%);
+            z-index: 51;
+            pointer-events: none;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 10px;
+            position: absolute;
+            background: rgba(0, 255, 0, 0.1);
+            opacity: 0.6;
+            animation: scan 6s linear infinite;
+            z-index: 52;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        .blink { animation: blink-anim 1s step-end infinite; }
+        @keyframes blink-anim { 50% { opacity: 0; } }
+
+        .fade-in { animation: fadeIn 0.3s ease-in forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glitch-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            position: relative;
+            text-shadow: 0.05em 0 0 rgba(255,0,0,0.75),
+                        -0.025em -0.05em 0 rgba(0,255,0,0.75),
+                         0.025em 0.05em 0 rgba(0,0,255,0.75);
+            animation: glitch 500ms infinite;
+            text-align: center;
+        }
+        
+        @media (min-width: 768px) {
+            .glitch-text { font-size: 4rem; }
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
+            14% { text-shadow: 0.05em 0 0 rgba(255,0,0,0.75), -0.05em -0.025em 0 rgba(0,255,0,0.75), -0.025em 0.05em 0 rgba(0,0,255,0.75); }
+            15% { text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.025em 0 rgba(0,255,0,0.75), -0.05em -0.05em 0 rgba(0,0,255,0.75); }
+            49% { text-shadow: -0.05em -0.025em 0 rgba(255,0,0,0.75), 0.025em 0.025em 0 rgba(0,255,0,0.75), -0.05em -0.05em 0 rgba(0,0,255,0.75); }
+            50% { text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75), 0 -0.05em 0 rgba(0,0,255,0.75); }
+            99% { text-shadow: 0.025em 0.05em 0 rgba(255,0,0,0.75), 0.05em 0 0 rgba(0,255,0,0.75), 0 -0.05em 0 rgba(0,0,255,0.75); }
+            100% { text-shadow: -0.025em 0 0 rgba(255,0,0,0.75), -0.025em -0.025em 0 rgba(0,255,0,0.75), -0.025em -0.05em 0 rgba(0,0,255,0.75); }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 20, 0, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 255, 0, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--term-green); }
+
+        .btn-glitch:hover {
+            background-color: var(--term-green);
+            color: black;
+            box-shadow: 0 0 15px var(--term-green);
+        }
+        
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--term-green);
+        }
+    </style>
+</head>
+<body class="crt relative flex flex-col items-center justify-center">
+
+    <div class="scanline"></div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard" class="flex flex-col w-full h-full max-w-6xl p-2 md:p-6 z-10 relative">
+        
+        <!-- HEADER PANEL -->
+        <header class="neon-border bg-black/80 p-3 sm:p-4 mb-3 sm:mb-4 flex flex-col sm:flex-row justify-between items-center shrink-0 shadow-lg relative overflow-hidden">
+            <div class="w-full sm:w-auto text-center sm:text-left mb-3 sm:mb-0 relative z-10">
+                <h1 class="text-lg md:text-2xl lg:text-3xl font-black tracking-widest text-red-500 uppercase flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                    <span class="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-red-600 rounded-full blink shadow-[0_0_10px_red]"></span>
+                    SYSTEM BREACHED
+                </h1>
+                <p class="text-[10px] md:text-sm mt-1 sm:mt-2 text-green-400 font-bold uppercase tracking-widest blink">
+                    > PREPARING UPLOAD TO contact.csv
+                </p>
+            </div>
+            
+            <div class="flex items-center gap-3 sm:gap-4 bg-red-950/40 px-4 py-2 sm:px-6 sm:py-3 border border-red-500/50 rounded-sm shadow-[0_0_15px_rgba(255,0,0,0.15)] relative z-10">
+                <div class="text-right hidden sm:block">
+                    <p class="text-[10px] sm:text-xs text-red-400 font-bold uppercase">Time Remaining</p>
+                </div>
+                <div id="countdown" class="text-2xl sm:text-4xl md:text-5xl font-bold neon-text-red tracking-wider tabular-nums">
+                    30:00
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA (Leaked Data Panel) -->
+        <main class="flex-1 min-h-0 neon-border bg-black/60 flex flex-col overflow-hidden shadow-2xl relative mb-3 sm:mb-4">
+            
+            <div class="border-b border-green-800/50 px-3 py-2 bg-green-900/20 shrink-0 flex justify-between items-center z-10">
+                <span class="text-green-500 font-bold tracking-widest text-xs sm:text-sm">>_ EXFILTRATING_DATA_STREAM</span>
+                <span class="text-[9px] sm:text-[10px] bg-red-900 text-white px-2 py-0.5 rounded-sm animate-pulse font-bold">LIVE</span>
+            </div>
+
+            <!-- Data Stream Container -->
+            <div id="live-feed" class="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 text-xs sm:text-sm md:text-base lg:text-lg space-y-2 font-mono leading-relaxed relative z-10 scroll-smooth pb-8">
+                <!-- Data will be populated here by JS -->
+            </div>
+        </main>
+
+        <!-- ACTION FOOTER -->
+        <footer class="shrink-0 grid grid-cols-3 gap-2 sm:gap-4 z-10 pb-2 sm:pb-0">
+            <button onclick="openModal('ready-modal')" class="btn-glitch w-full py-2.5 sm:py-4 bg-black neon-border text-green-500 font-bold tracking-widest uppercase transition-all duration-300 text-[10px] sm:text-sm md:text-lg">
+                READY
+            </button>
+            <button onclick="openModal('payment-modal')" class="btn-glitch w-full py-2.5 sm:py-4 bg-black neon-border text-green-500 font-bold tracking-widest uppercase transition-all duration-300 text-[10px] sm:text-sm md:text-lg">
+                PAYMENT
+            </button>
+            <button onclick="openModal('activation-modal')" class="btn-glitch w-full py-2.5 sm:py-4 bg-black neon-border text-green-500 font-bold tracking-widest uppercase transition-all duration-300 text-[10px] sm:text-sm md:text-lg">
+                ACTIVATION
+            </button>
+        </footer>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neon-border bg-black max-w-lg w-full p-6 relative">
+            <button onclick="closeModal('payment-modal')" class="absolute top-2 right-4 text-green-500 hover:text-white font-bold text-xl sm:text-2xl">X</button>
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 neon-text text-center border-b border-green-800/50 pb-2 mt-4 sm:mt-0">PAYMENT INSTRUCTIONS</h2>
+            <p class="text-xs sm:text-sm text-green-400 mb-4 text-center">To stop the upload to contact.csv, transfer 0.5 BTC to the wallet address below.</p>
+            
+            <div class="bg-green-950/30 p-3 sm:p-4 border border-green-800 text-center mb-6">
+                <p class="text-[10px] sm:text-xs text-green-600 mb-1 uppercase">BTC Wallet Address:</p>
+                <code class="text-green-300 break-all select-all text-xs sm:text-sm md:text-base">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</code>
+            </div>
+            
+            <div class="text-center">
+                <p class="text-[10px] sm:text-xs text-red-500 blink uppercase">Awaiting transaction confirmation...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVATION MODAL -->
+    <div id="activation-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neon-border bg-black max-w-md w-full p-6 relative">
+            <button onclick="closeModal('activation-modal')" class="absolute top-2 right-4 text-green-500 hover:text-white font-bold text-xl sm:text-2xl">X</button>
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 neon-text text-center border-b border-green-800/50 pb-2 mt-4 sm:mt-0">SYSTEM ACTIVATION</h2>
+            <p class="text-xs sm:text-sm text-green-400 mb-6 text-center">Enter the decryption key to abort the exfiltration process.</p>
+            
+            <input type="password" id="activation-password" class="w-full bg-black border border-green-500 text-green-400 p-3 text-center tracking-[0.3em] sm:tracking-[0.5em] mb-4 font-mono uppercase text-sm sm:text-base" placeholder="ENTER KEY" autocomplete="off">
+            
+            <p id="auth-error" class="text-red-500 text-center text-xs sm:text-sm font-bold hidden blink mb-4">ACCESS DENIED. INVALID KEY.</p>
+
+            <button onclick="checkPassword()" class="w-full py-3 bg-green-900/50 border border-green-500 text-green-400 font-bold hover:bg-green-500 hover:text-black transition-colors text-sm sm:text-base">
+                SUBMIT KEY
+            </button>
+        </div>
+    </div>
+
+    <!-- READY MODAL -->
+    <div id="ready-modal" class="fixed inset-0 bg-black/95 z-50 hidden flex-col items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neon-border bg-black max-w-4xl w-full h-[85vh] sm:h-[80vh] flex flex-col p-4 sm:p-6 relative">
+            <button onclick="closeModal('ready-modal')" class="absolute top-2 right-4 text-green-500 hover:text-white font-bold text-xl sm:text-2xl z-10 bg-black/50 px-2 rounded">X</button>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-4 neon-text text-center border-b border-green-800/50 pb-2 shrink-0 mt-4 sm:mt-0">EXTRACTED PAYLOAD DATA</h2>
+            <div class="flex-1 overflow-y-auto bg-green-950/20 border border-green-800 p-3 sm:p-4 text-left">
+                <pre id="ready-content" class="text-[10px] sm:text-xs md:text-sm text-green-400 font-mono whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const leakedData = [
+          { "tanggal": "13 Agu 2026, 19.14.54 WIB", "tempat": "hotel di dekat -6.353666,106.706501" },
+          { "tanggal": "13 Agu 2026, 19.16.22 WIB", "filename": "IMG_8472.jpg" },
+          { "tanggal": "30 Jul 2026, 19.20.47 WIB", "tempat": "hotel di dekat -6.307521,106.580620" },
+          { "tanggal": "30 Jul 2026, 19.22.15 WIB", "filename": "DSC_0192.png" },
+          { "tanggal": "30 Jul 2026, 19.20.30 WIB", "tempat": "penginapan terdekat" },
+          { "tanggal": "30 Jul 2026, 19.25.04 WIB", "filename": "Screenshot_20260730.jpg" },
+          { "tanggal": "9 Jul 2026, 21.30.28 WIB", "tempat": "hotel di dekat -6.098964,106.421779" },
+          { "tanggal": "9 Jul 2026, 21.32.10 WIB", "filename": "Photo_9921.jpeg" },
+          { "tanggal": "9 Jul 2026, 21.30.17 WIB", "tempat": "hotel di dekat -6.238362,106.606514" },
+          { "tanggal": "9 Jul 2026, 21.35.41 WIB", "filename": "IMG_1102.jpg" },
+          { "tanggal": "9 Jul 2026, 21.30.17 WIB", "tempat": "hotel di dekat -6.212419,106.518789" },
+          { "tanggal": "9 Jul 2026, 21.38.05 WIB", "filename": "Doc_Scan_004.pdf_page1.jpg" },
+          { "tanggal": "9 Jul 2026, 21.29.57 WIB", "tempat": "hotel di dekat -6.174126,106.654953" },
+          { "tanggal": "9 Jul 2026, 21.31.12 WIB", "filename": "image_5543.png" },
+          { "tanggal": "24 Jun 2026, 17.51.58 WIB", "tempat": "hotel di dekat -7.238019,109.919810" },
+          { "tanggal": "24 Jun 2026, 17.54.30 WIB", "filename": "IMG_20260624_175158.jpg" },
+          { "tanggal": "24 Jun 2026, 17.51.49 WIB", "tempat": "villa flamboyan 2 wonosobo" },
+          { "tanggal": "24 Jun 2026, 17.56.11 WIB", "filename": "DSC_8834.jpg" },
+          { "tanggal": "24 Jun 2026, 15.10.52 WIB", "tempat": "hotel di dekat -7.415421,109.884191" },
+          { "tanggal": "24 Jun 2026, 15.13.05 WIB", "filename": "IMG_7739.png" },
+          { "tanggal": "24 Jun 2026, 15.10.40 WIB", "tempat": "villa flamboyan 2 wonosobo" },
+          { "tanggal": "24 Jun 2026, 15.14.22 WIB", "filename": "Photo_0023.jpg" },
+          { "tanggal": "24 Jun 2026, 14.38.29 WIB", "tempat": "hotel di dekat -7.391515,109.745025" },
+          { "tanggal": "24 Jun 2026, 14.40.15 WIB", "filename": "Screenshot_102.png" },
+          { "tanggal": "24 Jun 2026, 14.38.11 WIB", "tempat": "villa flamboyan 2 wonosobo" },
+          { "tanggal": "24 Jun 2026, 14.45.33 WIB", "filename": "IMG_9948.jpeg" },
+          { "tanggal": "17 Mei 2026, 18.47.44 WIB", "tempat": "bandara mas m1" },
+          { "tanggal": "17 Mei 2026, 18.50.12 WIB", "filename": "DSC_7721.jpg" },
+          { "tanggal": "13 Apr 2026, 14.40.00 WIB", "tempat": "hotel di dekat -6.179955,106.644597" },
+          { "tanggal": "13 Apr 2026, 14.42.30 WIB", "filename": "IMG_4410.jpg" },
+          { "tanggal": "12 Apr 2026, 09.40.24 WIB", "tempat": "urbanview hotel groovy inn tangerang bintang berapa" },
+          { "tanggal": "12 Apr 2026, 09.45.10 WIB", "filename": "image_hotel_1.png" },
+          { "tanggal": "11 Apr 2026, 09.12.43 WIB", "tempat": "hotel di dekat -6.251292,106.653827" },
+          { "tanggal": "11 Apr 2026, 09.15.55 WIB", "filename": "IMG_3391.jpg" },
+          { "tanggal": "11 Apr 2026, 08.23.37 WIB", "tempat": "hotel di dekat -6.045561,106.669159" },
+          { "tanggal": "11 Apr 2026, 08.28.12 WIB", "filename": "DSC_1190.jpg" },
+          { "tanggal": "11 Apr 2026, 05.32.34 WIB", "tempat": "urbanview hotel groovy inn tangerang bintang berapa" },
+          { "tanggal": "11 Apr 2026, 05.35.09 WIB", "filename": "Screenshot_449.jpg" },
+          { "tanggal": "11 Apr 2026, 05.32.11 WIB", "tempat": "urbanview hotel groovy inn tangerang" },
+          { "tanggal": "11 Apr 2026, 05.34.22 WIB", "filename": "IMG_20260411_053211.png" },
+          { "tanggal": "10 Apr 2026, 20.39.37 WIB", "tempat": "hotel di dekat -6.174462,106.655259" },
+          { "tanggal": "10 Apr 2026, 20.41.15 WIB", "filename": "Photo_774.jpeg" },
+          { "tanggal": "10 Apr 2026, 20.39.36 WIB", "tempat": "Urbanview Hotel Groovy Inn Tangerang ‪Jl. Benteng Betawi No.27, Rukan Taman Royal 1, Cluster Cendana, Tanah Tinggi, Kec. Tangerang, Kota Tangerang, Banten 15119, Indonesia‬" },
+          { "tanggal": "10 Apr 2026, 20.45.50 WIB", "filename": "IMG_8829.jpg" },
+          { "tanggal": "29 Mar 2026, 18.57.29 WIB", "tempat": "blok m jakarta" },
+          { "tanggal": "29 Mar 2026, 19.01.10 WIB", "filename": "DSC_9932.jpg" },
+          { "tanggal": "29 Mar 2026, 15.36.29 WIB", "tempat": "blok m jakarta" },
+          { "tanggal": "29 Mar 2026, 15.38.45 WIB", "filename": "IMG_1109.png" },
+          { "tanggal": "19 Agu 2025, 07.52.04 WIB", "tempat": "https://www.google.com/travel/hotels/entity/CgsI2NOb4tT-2OeEARAB" },
+          { "tanggal": "19 Agu 2025, 07.55.30 WIB", "filename": "Screenshot_20250819.jpg" },
+          { "tanggal": "19 Agu 2025, 07.51.48 WIB", "tempat": "ulasan hotel indonesia pekalongan" },
+          { "tanggal": "19 Agu 2025, 07.54.12 WIB", "filename": "IMG_7382.jpg" },
+          { "tanggal": "19 Agu 2025, 07.51.22 WIB", "tempat": "hotel indonesia pekalongan" },
+          { "tanggal": "19 Agu 2025, 07.53.55 WIB", "filename": "Photo_1029.jpeg" },
+          { "tanggal": "11 Jun 2025, 12.19.20 WIB", "tempat": "hotel di dekat 0.000000,0.000000" },
+          { "tanggal": "11 Jun 2025, 12.21.45 WIB", "filename": "DSC_4021.png" },
+          { "tanggal": "10 Mei 2025, 16.21.10 WIB", "tempat": "Hotel Indonesia" },
+          { "tanggal": "10 Mei 2025, 16.25.33 WIB", "filename": "IMG_9912.jpg" },
+          { "tanggal": "10 Mei 2025, 16.20.50 WIB", "tempat": "hotel di dekat 0.000000,0.000000" },
+          { "tanggal": "10 Mei 2025, 16.23.11 WIB", "filename": "IMG_8812.jpg" },
+          { "tanggal": "10 Mei 2025, 16.20.47 WIB", "tempat": "pullman hotels" },
+          { "tanggal": "10 Mei 2025, 16.22.50 WIB", "filename": "image_pullman.jpg" },
+          { "tanggal": "7 Apr 2025, 11.40.45 WIB", "tempat": "puncak pass" },
+          { "tanggal": "7 Apr 2025, 11.45.10 WIB", "filename": "DSC_1002.jpg" },
+          { "tanggal": "6 Apr 2025, 18.43.52 WIB", "tempat": "kyriad hotel tangerang" },
+          { "tanggal": "6 Apr 2025, 18.46.20 WIB", "filename": "Screenshot_kyriad.png" },
+          { "tanggal": "6 Apr 2025, 10.14.44 WIB", "tempat": "hotel di dekat -6.364176,106.433192" },
+          { "tanggal": "6 Apr 2025, 10.18.30 WIB", "filename": "IMG_5521.jpg" },
+          { "tanggal": "6 Apr 2025, 10.14.44 WIB", "tempat": "Grand Aston Puncak" },
+          { "tanggal": "6 Apr 2025, 10.20.05 WIB", "filename": "Photo_aston.jpeg" },
+          { "tanggal": "6 Apr 2025, 10.13.33 WIB", "tempat": "hotel di dekat -6.045345,106.669018" },
+          { "tanggal": "6 Apr 2025, 10.15.22 WIB", "filename": "IMG_9001.png" },
+          { "tanggal": "6 Apr 2025, 10.13.31 WIB", "tempat": "Aston" },
+          { "tanggal": "6 Apr 2025, 10.16.40 WIB", "filename": "DSC_4432.jpg" },
+          { "tanggal": "4 Apr 2025, 20.17.18 WIB", "tempat": "hotel di dekat -6.017194,106.676802" },
+          { "tanggal": "4 Apr 2025, 20.20.15 WIB", "filename": "IMG_20250404_201718.jpg" },
+          { "tanggal": "4 Apr 2025, 20.17.17 WIB", "tempat": "mamifokobo 2" },
+          { "tanggal": "4 Apr 2025, 20.22.50 WIB", "filename": "Screenshot_992.jpg" },
+          { "tanggal": "30 Des 2024, 18.29.20 WIB", "tempat": "pantai tilem jepara" },
+          { "tanggal": "30 Des 2024, 18.33.12 WIB", "filename": "IMG_7781.jpeg" },
+          { "tanggal": "19 Apr 2024, 20.23.17 WIB", "tempat": "hotel d'prima tangerang" },
+          { "tanggal": "19 Apr 2024, 20.26.40 WIB", "filename": "DSC_0091.png" },
+          { "tanggal": "7 Okt 2023, 23.52.57 WIB", "tempat": "alamat hotel arcadia mangga dua" },
+          { "tanggal": "7 Okt 2023, 23.55.10 WIB", "filename": "IMG_4452.jpg" },
+          { "tanggal": "7 Okt 2023, 23.50.07 WIB", "tempat": "hotel arcadia mangga jakarta" },
+          { "tanggal": "7 Okt 2023, 23.53.22 WIB", "filename": "Photo_arcadia.jpg" },
+          { "tanggal": "24 Sep 2023, 06.43.43 WIB", "tempat": "d'primahotel Tangerang, Jalan Benteng Betawi, Buaran Indah, Kota Tangerang, Banten" },
+          { "tanggal": "24 Sep 2023, 06.45.12 WIB", "filename": "IMG_3342.png" },
+          { "tanggal": "7 Sep 2023, 20.35.29 WIB", "tempat": "d'primahotel tangerang lokasi" },
+          { "tanggal": "7 Sep 2023, 20.38.05 WIB", "filename": "Screenshot_loc.jpg" },
+          { "tanggal": "7 Sep 2023, 20.35.23 WIB", "tempat": "d prima hotel tangerang" },
+          { "tanggal": "7 Sep 2023, 20.39.11 WIB", "filename": "IMG_1223.jpg" },
+          { "tanggal": "7 Sep 2023, 13.16.41 WIB", "tempat": "d prima hotel tangerang" },
+          { "tanggal": "7 Sep 2023, 13.20.15 WIB", "filename": "DSC_8843.jpeg" },
+          { "tanggal": "23 Agu 2023, 11.05.25 WIB", "tempat": "https://www.google.com/travel/hotels/entity/CgsIsvCEk4zyiKSFARAB" },
+          { "tanggal": "23 Agu 2023, 11.08.40 WIB", "filename": "IMG_20230823.png" },
+          { "tanggal": "23 Agu 2023, 11.05.12 WIB", "tempat": "grand hill puncak" },
+          { "tanggal": "23 Agu 2023, 11.09.22 WIB", "filename": "Photo_grandhill.jpg" },
+          { "tanggal": "13 Jan 2023, 15.56.14 WIB", "tempat": "ciputat" },
+          { "tanggal": "13 Jan 2023, 15.59.05 WIB", "filename": "IMG_9918.jpg" },
+          { "tanggal": "13 Jan 2023, 10.08.27 WIB", "tempat": "cipondoh" },
+          { "tanggal": "13 Jan 2023, 10.12.33 WIB", "filename": "DSC_5541.png" },
+          { "tanggal": "6 Jan 2023, 14.14.08 WIB", "tempat": "padang" },
+          { "tanggal": "6 Jan 2023, 14.18.20 WIB", "filename": "IMG_7621.jpg" },
+          { "tanggal": "1 Jan 2023, 02.27.39 WIB", "tempat": "tennessee" },
+          { "tanggal": "1 Jan 2023, 02.30.12 WIB", "filename": "Screenshot_tenn.jpeg" },
+          { "tanggal": "17 Des 2025, 00.11.26 WIB", "tempat": "Renegade Immortal Episode 120 Preview - Video Dailymotion" },
+          { "tanggal": "17 Des 2025, 00.15.45 WIB", "filename": "IMG_1029.jpg" },
+          { "tanggal": "17 Des 2025, 00.11.26 WIB", "tempat": "Renegade Immortal Episode 119 Sub Indo - Video Dailymotion" },
+          { "tanggal": "17 Des 2025, 00.18.10 WIB", "filename": "video_thumb_119.png" },
+          { "tanggal": "16 Des 2025, 23.52.19 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "16 Des 2025, 23.55.30 WIB", "filename": "IMG_3049.jpg" },
+          { "tanggal": "16 Des 2025, 23.52.13 WIB", "tempat": "renegade immortal eps 119 - Penelusuran Google" },
+          { "tanggal": "16 Des 2025, 23.57.12 WIB", "filename": "Screenshot_search.jpg" },
+          { "tanggal": "16 Des 2025, 23.51.58 WIB", "tempat": "myut - Penelusuran Google" },
+          { "tanggal": "16 Des 2025, 23.56.40 WIB", "filename": "DSC_2210.jpeg" },
+          { "tanggal": "6 Des 2025, 17.14.41 WIB", "tempat": "Pengaturan Ulang Kata Sandi Online Microsoft" },
+          { "tanggal": "6 Des 2025, 17.17.20 WIB", "filename": "IMG_9921.jpg" },
+          { "tanggal": "6 Des 2025, 17.14.37 WIB", "tempat": "Masuk ke akun Anda" },
+          { "tanggal": "6 Des 2025, 17.18.15 WIB", "filename": "login_screen.png" },
+          { "tanggal": "6 Des 2025, 17.14.24 WIB", "tempat": "UT | Sistem Informasi Akademik" },
+          { "tanggal": "6 Des 2025, 17.16.50 WIB", "filename": "IMG_4021.jpg" },
+          { "tanggal": "6 Des 2025, 17.14.20 WIB", "tempat": "myut - Penelusuran Google" },
+          { "tanggal": "6 Des 2025, 17.19.05 WIB", "filename": "Screenshot_myut.jpg" },
+          { "tanggal": "6 Des 2025, 17.14.14 WIB", "tempat": "Home | ElearningUT" },
+          { "tanggal": "6 Des 2025, 17.15.55 WIB", "filename": "DSC_5502.png" },
+          { "tanggal": "26 Nov 2025, 20.14.03 WIB", "tempat": "BOKEP INDO STAYCATION at DuckDuckGo" },
+          { "tanggal": "26 Nov 2025, 20.17.12 WIB", "filename": "IMG_8820.jpg" },
+          { "tanggal": "26 Nov 2025, 20.13.39 WIB", "tempat": "DuckDuckGo - Perlindungan. Privasi. Ketenangan pikiran." },
+          { "tanggal": "26 Nov 2025, 20.18.22 WIB", "filename": "Photo_duck.jpeg" },
+          { "tanggal": "26 Nov 2025, 20.13.35 WIB", "tempat": "duckduckgo - Penelusuran Google" },
+          { "tanggal": "26 Nov 2025, 20.16.50 WIB", "filename": "IMG_1104.jpg" },
+          { "tanggal": "25 Nov 2025, 13.38.32 WIB", "tempat": "Bokep Porn Videos XXX | XOrgasmo.com" },
+          { "tanggal": "25 Nov 2025, 13.41.05 WIB", "filename": "Screenshot_xxx.png" },
+          { "tanggal": "25 Nov 2025, 13.38.28 WIB", "tempat": "AMALIA Porn Videos XXX | XOrgasmo.com" },
+          { "tanggal": "25 Nov 2025, 13.42.15 WIB", "filename": "IMG_7731.jpg" },
+          { "tanggal": "25 Nov 2025, 13.37.11 WIB", "tempat": "Aeons Echo on Steam" },
+          { "tanggal": "25 Nov 2025, 13.40.40 WIB", "filename": "steam_game.jpg" },
+          { "tanggal": "25 Nov 2025, 13.34.39 WIB", "tempat": "Chaturbate - 100% Free Chat & Webcams" },
+          { "tanggal": "25 Nov 2025, 13.37.55 WIB", "filename": "DSC_9930.png" },
+          { "tanggal": "25 Nov 2025, 13.34.37 WIB", "tempat": "Amalia Mutya kompilasi ukhti hyper endingnya skincare peju" },
+          { "tanggal": "25 Nov 2025, 13.38.10 WIB", "filename": "IMG_5501.jpg" },
+          { "tanggal": "25 Nov 2025, 13.34.11 WIB", "tempat": "bokep amalia mutya at DuckDuckGo" },
+          { "tanggal": "25 Nov 2025, 13.36.45 WIB", "filename": "Screenshot_duck2.jpeg" },
+          { "tanggal": "25 Nov 2025, 13.33.39 WIB", "tempat": "DuckDuckGo - Perlindungan. Privasi. Ketenangan pikiran." },
+          { "tanggal": "25 Nov 2025, 13.36.12 WIB", "filename": "IMG_2209.jpg" },
+          { "tanggal": "25 Nov 2025, 13.33.36 WIB", "tempat": "duckduckgo - Penelusuran Google" },
+          { "tanggal": "25 Nov 2025, 13.35.50 WIB", "filename": "DSC_1182.png" },
+          { "tanggal": "14 Okt 2025, 20.25.58 WIB", "tempat": "wan er renegade immortal - Penelusuran Google" },
+          { "tanggal": "14 Okt 2025, 20.28.15 WIB", "filename": "IMG_6621.jpg" },
+          { "tanggal": "14 Okt 2025, 20.24.27 WIB", "tempat": "liu mei renegade immortal - Penelusuran Google" },
+          { "tanggal": "14 Okt 2025, 20.27.40 WIB", "filename": "Photo_liu.jpg" },
+          { "tanggal": "14 Okt 2025, 20.23.37 WIB", "tempat": "renegade immortal - Penelusuran Google" },
+          { "tanggal": "14 Okt 2025, 20.26.12 WIB", "filename": "IMG_8819.png" },
+          { "tanggal": "14 Okt 2025, 20.22.22 WIB", "tempat": "Renegade Immortal | Xian Ni Wikia | Fandom" },
+          { "tanggal": "14 Okt 2025, 20.25.05 WIB", "filename": "Screenshot_fandom.jpg" },
+          { "tanggal": "14 Okt 2025, 20.22.18 WIB", "tempat": "Category:Characters | Xian Ni Wikia | Fandom" },
+          { "tanggal": "14 Okt 2025, 20.26.33 WIB", "filename": "IMG_0092.jpeg" },
+          { "tanggal": "14 Okt 2025, 20.20.38 WIB", "tempat": "Wang Lin | Xian Ni Wikia | Fandom" },
+          { "tanggal": "14 Okt 2025, 20.23.15 WIB", "filename": "DSC_5582.jpg" },
+          { "tanggal": "14 Okt 2025, 20.17.53 WIB", "tempat": "wang lin renegade immortal - Penelusuran Google" },
+          { "tanggal": "14 Okt 2025, 20.21.10 WIB", "filename": "IMG_3310.png" },
+          { "tanggal": "14 Okt 2025, 20.14.51 WIB", "tempat": "nonton renegade immortal eps 111 - Penelusuran Google" },
+          { "tanggal": "14 Okt 2025, 20.18.05 WIB", "filename": "IMG_20251014.jpg" },
+          { "tanggal": "14 Okt 2025, 20.13.18 WIB", "tempat": "Netflix" },
+          { "tanggal": "14 Okt 2025, 20.16.22 WIB", "filename": "netflix_home.png" },
+          { "tanggal": "14 Okt 2025, 20.11.36 WIB", "tempat": "Início – Netflix" },
+          { "tanggal": "14 Okt 2025, 20.15.50 WIB", "filename": "DSC_2291.jpg" },
+          { "tanggal": "14 Okt 2025, 20.08.12 WIB", "tempat": "Renegade Immortal Eps 111 Perview - Video Dailymotion" },
+          { "tanggal": "14 Okt 2025, 20.11.05 WIB", "filename": "IMG_8841.jpg" },
+          { "tanggal": "14 Okt 2025, 20.08.00 WIB", "tempat": "nonton renegade immortal eps 110 - Penelusuran Google" },
+          { "tanggal": "14 Okt 2025, 20.10.33 WIB", "filename": "Screenshot_eps110.jpeg" },
+          { "tanggal": "14 Okt 2025, 20.01.31 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "14 Okt 2025, 20.04.15 WIB", "filename": "IMG_5581.png" },
+          { "tanggal": "14 Okt 2025, 19.50.11 WIB", "tempat": "WhatsApp" },
+          { "tanggal": "14 Okt 2025, 19.54.20 WIB", "filename": "wa_web_qr.jpg" },
+          { "tanggal": "10 Okt 2025, 21.12.00 WIB", "tempat": "nonton renegade immortal eps 110 - Penelusuran Google" },
+          { "tanggal": "10 Okt 2025, 21.15.30 WIB", "filename": "IMG_1192.jpg" },
+          { "tanggal": "10 Okt 2025, 21.11.52 WIB", "tempat": "nonton renegade immortal eps 109 - Penelusuran Google" },
+          { "tanggal": "10 Okt 2025, 21.16.12 WIB", "filename": "DSC_6610.png" },
+          { "tanggal": "10 Okt 2025, 20.51.39 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.55.05 WIB", "filename": "IMG_4492.jpg" },
+          { "tanggal": "10 Okt 2025, 20.50.30 WIB", "tempat": "Renegade Immortal Episode 109 Sub Indo - Video Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.52.40 WIB", "filename": "Photo_eps109.jpeg" },
+          { "tanggal": "10 Okt 2025, 20.49.04 WIB", "tempat": "Renegade Immortal Eps 109 sub indo bagus - Video Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.52.15 WIB", "filename": "IMG_8810.jpg" },
+          { "tanggal": "10 Okt 2025, 20.48.55 WIB", "tempat": "nonton renegade immortal eps 108 - Penelusuran Google" },
+          { "tanggal": "10 Okt 2025, 20.51.10 WIB", "filename": "Screenshot_google_108.png" },
+          { "tanggal": "10 Okt 2025, 20.48.53 WIB", "tempat": "Renegade Immortal - Episode 108 Sub Indo - Video Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.53.05 WIB", "filename": "IMG_3301.jpg" },
+          { "tanggal": "10 Okt 2025, 20.48.47 WIB", "tempat": "Renegade Immortal Episode 109 Preview MULTI SUB - Video Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.51.40 WIB", "filename": "DSC_1109.jpg" },
+          { "tanggal": "10 Okt 2025, 20.20.46 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.25.12 WIB", "filename": "IMG_2281.png" },
+          { "tanggal": "10 Okt 2025, 20.18.20 WIB", "tempat": "nonton renegade immortal eps 107 - Penelusuran Google" },
+          { "tanggal": "10 Okt 2025, 20.22.50 WIB", "filename": "Photo_107.jpeg" },
+          { "tanggal": "10 Okt 2025, 20.16.51 WIB", "tempat": "Renegade Immortal Episode 107 sub indo - Video Dailymotion" },
+          { "tanggal": "10 Okt 2025, 20.19.15 WIB", "filename": "IMG_7719.jpg" },
+          { "tanggal": "10 Okt 2025, 20.11.22 WIB", "tempat": "Netflix" },
+          { "tanggal": "10 Okt 2025, 20.14.33 WIB", "filename": "Screenshot_netflix2.jpg" },
+          { "tanggal": "10 Okt 2025, 20.10.22 WIB", "tempat": "Netflix Indonesia - Tonton Acara TV Online, Tonton Film Online" },
+          { "tanggal": "10 Okt 2025, 20.12.10 WIB", "filename": "IMG_6631.png" },
+          { "tanggal": "10 Okt 2025, 20.10.15 WIB", "tempat": "netflix - Penelusuran Google" },
+          { "tanggal": "10 Okt 2025, 20.13.05 WIB", "filename": "DSC_4402.jpg" },
+          { "tanggal": "30 Sep 2025, 06.23.25 WIB", "tempat": "WhatsApp" },
+          { "tanggal": "30 Sep 2025, 06.28.10 WIB", "filename": "IMG_20250930_062325.jpg" },
+          { "tanggal": "30 Sep 2025, 04.07.00 WIB", "tempat": "Renegade Immortal_Episode 108 - Video Dailymotion" },
+          { "tanggal": "30 Sep 2025, 04.10.45 WIB", "filename": "Screenshot_vid108.jpeg" },
+          { "tanggal": "30 Sep 2025, 04.00.28 WIB", "tempat": "Renegade Immortal Episode 108 indo - Video Dailymotion" },
+          { "tanggal": "30 Sep 2025, 04.03.15 WIB", "filename": "IMG_9910.jpg" },
+          { "tanggal": "30 Sep 2025, 04.00.16 WIB", "tempat": "renegade immortal episode 108 sub indo - Penelusuran Google" },
+          { "tanggal": "30 Sep 2025, 04.04.50 WIB", "filename": "Photo_google108.png" },
+          { "tanggal": "30 Sep 2025, 03.59.12 WIB", "tempat": "Renegade Immortal Episode 108 4K - Video Dailymotion" },
+          { "tanggal": "30 Sep 2025, 04.02.11 WIB", "filename": "IMG_1120.jpg" },
+          { "tanggal": "30 Sep 2025, 03.59.03 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "30 Sep 2025, 04.01.20 WIB", "filename": "DSC_3381.jpg" },
+          { "tanggal": "30 Sep 2025, 03.58.20 WIB", "tempat": "Renegade Immortal Eps 108 sub indo bagus - Video Dailymotion" },
+          { "tanggal": "30 Sep 2025, 04.01.05 WIB", "filename": "IMG_5519.png" },
+          { "tanggal": "30 Sep 2025, 03.53.50 WIB", "tempat": "WhatsApp" },
+          { "tanggal": "30 Sep 2025, 03.56.33 WIB", "filename": "Screenshot_wa.jpeg" },
+          { "tanggal": "30 Sep 2025, 03.53.05 WIB", "tempat": "(101) WhatsApp" },
+          { "tanggal": "30 Sep 2025, 03.55.12 WIB", "filename": "IMG_8821.jpg" },
+          { "tanggal": "30 Sep 2025, 03.52.57 WIB", "tempat": "wa web - Penelusuran Google" },
+          { "tanggal": "30 Sep 2025, 03.56.05 WIB", "filename": "DSC_7710.jpg" },
+          { "tanggal": "28 Sep 2025, 19.04.26 WIB", "tempat": "island alchemy of souls - Penelusuran Google" },
+          { "tanggal": "28 Sep 2025, 19.08.10 WIB", "filename": "IMG_4401.png" },
+          { "tanggal": "28 Sep 2025, 11.35.33 WIB", "tempat": "google maps - Penelusuran Google" },
+          { "tanggal": "28 Sep 2025, 11.39.05 WIB", "filename": "Photo_maps.jpg" },
+          { "tanggal": "28 Sep 2025, 11.35.32 WIB", "tempat": "Palu, Sulawesi Tengah - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.38.15 WIB", "filename": "IMG_6692.jpeg" },
+          { "tanggal": "28 Sep 2025, 11.35.15 WIB", "tempat": "Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.37.40 WIB", "filename": "Screenshot_gmaps.jpg" },
+          { "tanggal": "28 Sep 2025, 11.34.24 WIB", "tempat": "Mapun - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.36.12 WIB", "filename": "IMG_3311.png" },
+          { "tanggal": "28 Sep 2025, 11.34.16 WIB", "tempat": "Pamol - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.38.05 WIB", "filename": "DSC_8820.jpg" },
+          { "tanggal": "28 Sep 2025, 11.34.03 WIB", "tempat": "Kota Marudu, Sabah - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.37.22 WIB", "filename": "IMG_1105.jpg" },
+          { "tanggal": "28 Sep 2025, 11.33.48 WIB", "tempat": "Imbak Canyon Conservation Area - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.36.50 WIB", "filename": "Photo_imbak.jpeg" },
+          { "tanggal": "28 Sep 2025, 11.33.22 WIB", "tempat": "Sabah - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.35.10 WIB", "filename": "IMG_4419.jpg" },
+          { "tanggal": "28 Sep 2025, 11.33.10 WIB", "tempat": "Brunei Darussalam - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.37.05 WIB", "filename": "Screenshot_brunei.png" },
+          { "tanggal": "28 Sep 2025, 11.32.59 WIB", "tempat": "DUXHUB “360” - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.35.45 WIB", "filename": "IMG_9930.jpg" },
+          { "tanggal": "28 Sep 2025, 11.32.27 WIB", "tempat": "Serawak - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.36.10 WIB", "filename": "DSC_2201.jpg" },
+          { "tanggal": "28 Sep 2025, 11.32.14 WIB", "tempat": "Kalimantan Barat - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.34.50 WIB", "filename": "IMG_5505.jpeg" },
+          { "tanggal": "28 Sep 2025, 11.31.47 WIB", "tempat": "Masjid Ar-Rahman Rajamina - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.35.05 WIB", "filename": "Photo_masjid.jpg" },
+          { "tanggal": "28 Sep 2025, 11.31.02 WIB", "tempat": "Underwater Earth - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.34.15 WIB", "filename": "IMG_7711.png" },
+          { "tanggal": "28 Sep 2025, 11.30.16 WIB", "tempat": "Pantai Medang - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.33.22 WIB", "filename": "Screenshot_pantai.jpg" },
+          { "tanggal": "28 Sep 2025, 11.29.58 WIB", "tempat": "Kebakaran parah - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.32.10 WIB", "filename": "IMG_8802.jpg" },
+          { "tanggal": "28 Sep 2025, 11.28.51 WIB", "tempat": "Gili Kondo - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.31.05 WIB", "filename": "DSC_4411.jpeg" },
+          { "tanggal": "28 Sep 2025, 11.28.44 WIB", "tempat": "NAMU BEACH - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.32.40 WIB", "filename": "IMG_2291.png" },
+          { "tanggal": "28 Sep 2025, 11.28.07 WIB", "tempat": "Pulau Kenawa - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.30.15 WIB", "filename": "Photo_kenawa.jpg" },
+          { "tanggal": "28 Sep 2025, 11.26.31 WIB", "tempat": "Kec. Poto Tano - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.28.50 WIB", "filename": "IMG_9901.jpg" },
+          { "tanggal": "28 Sep 2025, 11.26.15 WIB", "tempat": "Nusa Tenggara Bar. - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.29.05 WIB", "filename": "Screenshot_ntb.jpg" },
+          { "tanggal": "28 Sep 2025, 11.25.59 WIB", "tempat": "Bukit mantar - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.28.12 WIB", "filename": "IMG_1106.png" },
+          { "tanggal": "28 Sep 2025, 11.24.08 WIB", "tempat": "Olet Sangenges - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.27.33 WIB", "filename": "DSC_7731.jpeg" },
+          { "tanggal": "28 Sep 2025, 11.24.00 WIB", "tempat": "Air Terjun Kalela - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.26.10 WIB", "filename": "IMG_4482.jpg" },
+          { "tanggal": "28 Sep 2025, 11.22.13 WIB", "tempat": "poto tano sumbawa - Google Maps" },
+          { "tanggal": "28 Sep 2025, 11.25.05 WIB", "filename": "Photo_pototano.jpg" },
+          { "tanggal": "28 Sep 2025, 10.55.59 WIB", "tempat": "berapa harga menghilangkan karang gigi - Penelusuran Google" },
+          { "tanggal": "28 Sep 2025, 10.58.12 WIB", "filename": "IMG_20250928_105559.png" },
+          { "tanggal": "28 Sep 2025, 10.55.48 WIB", "tempat": "berapa harga menghilangkan tahi lalat - Penelusuran Google" },
+          { "tanggal": "28 Sep 2025, 10.59.30 WIB", "filename": "Screenshot_search2.jpg" },
+          { "tanggal": "28 Sep 2025, 10.55.24 WIB", "tempat": "apakah karang gigi bisa dibersihkan sendiri - Penelusuran Google" },
+          { "tanggal": "28 Sep 2025, 10.57.10 WIB", "filename": "IMG_5591.jpeg" },
+          { "tanggal": "23 Sep 2025, 15.12.18 WIB", "tempat": "Renegade Immortal Eps 108 Perview - Video Dailymotion" },
+          { "tanggal": "23 Sep 2025, 15.15.30 WIB", "filename": "DSC_8803.jpg" },
+          { "tanggal": "23 Sep 2025, 15.12.17 WIB", "tempat": "Renegade Immortal - Episode 107 Sub Indo - Video Dailymotion" },
+          { "tanggal": "23 Sep 2025, 15.16.05 WIB", "filename": "IMG_1130.png" },
+          { "tanggal": "23 Sep 2025, 14.31.59 WIB", "tempat": "Renegade Immortal Episode 107 sub indo - Video Dailymotion" },
+          { "tanggal": "23 Sep 2025, 14.35.10 WIB", "filename": "Photo_eps107.jpg" },
+          { "tanggal": "23 Sep 2025, 14.31.54 WIB", "tempat": "nonton renegade immortal eps 107 - Penelusuran Google" },
+          { "tanggal": "23 Sep 2025, 14.36.45 WIB", "filename": "IMG_9913.jpg" },
+          { "tanggal": "23 Sep 2025, 14.31.22 WIB", "tempat": "Renegade Immortal Episode 107 indo - Video Dailymotion" },
+          { "tanggal": "23 Sep 2025, 14.34.12 WIB", "filename": "Screenshot_dm107.jpeg" },
+          { "tanggal": "23 Sep 2025, 14.28.21 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "23 Sep 2025, 14.30.50 WIB", "filename": "IMG_4421.png" },
+          { "tanggal": "17 Sep 2025, 11.21.48 WIB", "tempat": "PV Tales Of Herding Gods Eps 49 🔥 - Bstation" },
+          { "tanggal": "17 Sep 2025, 11.24.15 WIB", "filename": "DSC_6612.jpg" },
+          { "tanggal": "17 Sep 2025, 11.21.09 WIB", "tempat": "PV Renegade Immortal Eps 107 🔥 - Bstation" },
+          { "tanggal": "17 Sep 2025, 11.23.40 WIB", "filename": "IMG_2204.jpg" },
+          { "tanggal": "17 Sep 2025, 11.20.56 WIB", "tempat": "Renegade Immortal Eps 107 Priview sub indo - Bstation" },
+          { "tanggal": "17 Sep 2025, 11.24.10 WIB", "filename": "Photo_pv107.png" },
+          { "tanggal": "17 Sep 2025, 11.20.43 WIB", "tempat": "nonton renegade immortal eps 107 - Penelusuran Google" },
+          { "tanggal": "17 Sep 2025, 11.25.05 WIB", "filename": "IMG_7783.jpeg" },
+          { "tanggal": "17 Sep 2025, 11.20.19 WIB", "tempat": "Legend Martial Immortal eps 107 indo - Video Dailymotion" },
+          { "tanggal": "17 Sep 2025, 11.23.50 WIB", "filename": "Screenshot_legend107.jpg" },
+          { "tanggal": "17 Sep 2025, 11.19.51 WIB", "tempat": "nonton renegade immortal eps 106 - Penelusuran Google" },
+          { "tanggal": "17 Sep 2025, 11.22.10 WIB", "filename": "IMG_1195.jpg" },
+          { "tanggal": "17 Sep 2025, 11.19.49 WIB", "tempat": "Renegade Immortal - Episode 106 Sub Indo - Video Dailymotion" },
+          { "tanggal": "17 Sep 2025, 11.24.33 WIB", "filename": "DSC_5520.png" },
+          { "tanggal": "17 Sep 2025, 11.19.32 WIB", "tempat": "Preview Renegade Immortal Eps 107 - Video Dailymotion" },
+          { "tanggal": "17 Sep 2025, 11.21.15 WIB", "filename": "IMG_3381.jpg" },
+          { "tanggal": "17 Sep 2025, 10.52.14 WIB", "tempat": "Dailymotion" },
+          { "tanggal": "17 Sep 2025, 10.55.30 WIB", "filename": "Photo_dm_home.jpeg" }
+        ];
+
+        const liveFeed = document.getElementById('live-feed');
+        const countdownEl = document.getElementById('countdown');
+        
+        let timeRemaining = 30 * 60; // 30 minutes
+        let dataIndex = 0;
+        let isSystemActive = false;
+        
+        // Populate READY modal
+        document.getElementById('ready-content').textContent = JSON.stringify(leakedData, null, 2);
+
+        function startTimer() {
+            updateTimerDisplay();
+            setInterval(() => {
+                if (timeRemaining > 0 && !isSystemActive) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                } else if (timeRemaining <= 0) {
+                    countdownEl.textContent = "00:00";
+                    countdownEl.classList.add('blink');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            let s = (timeRemaining % 60).toString().padStart(2, '0');
+            countdownEl.textContent = `${m}:${s}`;
+        }
+
+        function streamData() {
+            if (isSystemActive) return;
+
+            if (dataIndex >= leakedData.length) {
+                dataIndex = 0; 
+            }
+
+            const data = leakedData[dataIndex];
+            const div = document.createElement('div');
+            
+            let prefix = "";
+            let content = "";
+            let dataColor = "";
+
+            if (data.tempat) {
+                prefix = "[LOC]";
+                content = data.tempat;
+                dataColor = "text-green-400";
+                div.className = "flex flex-col sm:flex-row gap-1 sm:gap-4 border-l-2 border-green-500 pl-3 py-2 bg-green-900/10 transition-colors fade-in";
+            } else if (data.filename) {
+                prefix = "[FILE]";
+                content = data.filename;
+                dataColor = "text-yellow-400";
+                div.className = "flex flex-col sm:flex-row gap-1 sm:gap-4 border-l-2 border-yellow-500 pl-3 py-2 bg-yellow-900/10 transition-colors fade-in";
+            }
+            
+            div.innerHTML = `
+                <span class="text-green-500 font-bold whitespace-nowrap shrink-0">[${data.tanggal}]</span>
+                <span class="text-green-300 neon-text hidden sm:inline">-</span>
+                <span class="text-gray-500 font-bold text-xs sm:text-sm mt-1 sm:mt-0">${prefix}</span>
+                <span class="${dataColor} break-words font-medium">${content}</span>
+            `;
+            
+            liveFeed.appendChild(div);
+            liveFeed.scrollTop = liveFeed.scrollHeight; 
+            dataIndex++;
+
+            if (liveFeed.children.length > 50) {
+                liveFeed.removeChild(liveFeed.firstChild);
+            }
+
+            const delay = Math.random() * 600 + 700; 
+            setTimeout(streamData, delay);
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+            
+            if(id === 'activation-modal') {
+                document.getElementById('activation-password').focus();
+                document.getElementById('auth-error').classList.add('hidden');
+                document.getElementById('activation-password').value = '';
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        function checkPassword() {
+            const pwd = document.getElementById('activation-password').value;
+            const errorMsg = document.getElementById('auth-error');
+            
+            if (pwd === "PvsmagprinmeiRg") {
+                isSystemActive = true;
+                
+                // CRITICAL: Completely clear and replace body
+                document.body.innerHTML = `
+                    <div style="height:100dvh; display:flex; align-items:center; justify-content:center; background-color:#050505; color:#0f0; font-family:'Share Tech Mono', monospace; flex-direction:column; text-align:center;" class="crt">
+                        <div class="scanline"></div>
+                        <h1 class="glitch-text">Thank You,<br>Have a Nice Day.</h1>
+                    </div>
+                `;
+
+                // TRAP: Lock the back button
+                history.pushState(null, document.title, location.href);
+                window.addEventListener('popstate', function (event) {
+                    history.pushState(null, document.title, location.href);
+                });
+
+            } else {
+                errorMsg.classList.remove('hidden');
+                document.getElementById('activation-password').value = '';
+                document.getElementById('activation-password').focus();
+            }
+        }
+
+        document.getElementById('activation-password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // Init everything on load
+        window.onload = () => {
+            // Slight delay to fade in the dashboard naturally
+            document.getElementById('dashboard').classList.remove('opacity-0');
+            document.getElementById('dashboard').classList.add('fade-in');
+            startTimer();
+            streamData();
+        };
+    </script>
+</body>
+</html>
