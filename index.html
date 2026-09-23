@@ -136,7 +136,7 @@
     <div class="scanline"></div>
 
     <!-- MAIN DASHBOARD -->
-    <div id="dashboard" class="flex flex-col w-full h-full max-w-6xl p-2 md:p-6 z-10 relative">
+    <div id="dashboard" class="flex flex-col w-full h-full max-w-6xl p-2 md:p-6 z-10 relative hidden">
         
         <!-- HEADER PANEL -->
         <header class="neon-border bg-black/80 p-3 sm:p-4 mb-3 sm:mb-4 flex flex-col sm:flex-row justify-between items-center shrink-0 shadow-lg relative overflow-hidden">
@@ -552,32 +552,64 @@
         ];
 
         const liveFeed = document.getElementById('live-feed');
-        const countdownEl = document.getElementById('countdown');
         
-        let timeRemaining = 30 * 60; // 30 minutes
         let dataIndex = 0;
         let isSystemActive = false;
         
-        // Populate READY modal
-        document.getElementById('ready-content').textContent = JSON.stringify(leakedData, null, 2);
+        // --- NEW: FUNGSI UNTUK MENAMPILKAN LAYAR THANK YOU ---
+        function showThankYouScreen() {
+            // Hapus isi body dan ganti dengan layar Thank You
+            document.body.innerHTML = `
+                <div style="height:100dvh; display:flex; align-items:center; justify-content:center; background-color:#050505; color:#0f0; font-family:'Share Tech Mono', monospace; flex-direction:column; text-align:center;" class="crt">
+                    <div class="scanline"></div>
+                    <h1 class="glitch-text">Thank You,<br>Have a Nice Day.</h1>
+                </div>
+            `;
 
-        function startTimer() {
-            updateTimerDisplay();
-            setInterval(() => {
-                if (timeRemaining > 0 && !isSystemActive) {
-                    timeRemaining--;
-                    updateTimerDisplay();
-                } else if (timeRemaining <= 0) {
-                    countdownEl.textContent = "00:00";
-                    countdownEl.classList.add('blink');
-                }
-            }, 1000);
+            // Kunci tombol "Back" pada browser
+            history.pushState(null, document.title, location.href);
+            window.addEventListener('popstate', function (event) {
+                history.pushState(null, document.title, location.href);
+            });
+        }
+        
+        // Populate READY modal (kalau masih di layar dashboard)
+        if (document.getElementById('ready-content')) {
+            document.getElementById('ready-content').textContent = JSON.stringify(leakedData, null, 2);
         }
 
-        function updateTimerDisplay() {
-            let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
-            let s = (timeRemaining % 60).toString().padStart(2, '0');
+        // --- PERSISTENT TIMER LOGIC ---
+        const durationInSeconds = 1800; // 30 minutes
+        let endTime = localStorage.getItem('hacker_endTime');
+        let currentTime = Math.floor(Date.now() / 1000);
+
+        if (!endTime || currentTime >= endTime) {
+            endTime = currentTime + durationInSeconds;
+            localStorage.setItem('hacker_endTime', endTime);
+        }
+
+        function updateTimer() {
+            if (isSystemActive) return; 
+            
+            const countdownEl = document.getElementById('countdown');
+            if (!countdownEl) return; 
+
+            let now = Math.floor(Date.now() / 1000);
+            let timeLeft = Math.max(0, endTime - now);
+
+            let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            let s = (timeLeft % 60).toString().padStart(2, '0');
+            
             countdownEl.textContent = `${m}:${s}`;
+
+            if (timeLeft <= 0) {
+                countdownEl.classList.add('blink');
+            }
+        }
+
+        function startTimer() {
+            updateTimer(); 
+            setInterval(updateTimer, 1000); 
         }
 
         function streamData() {
@@ -648,19 +680,14 @@
             if (pwd === "PvsmagprinmeiRg") {
                 isSystemActive = true;
                 
-                // CRITICAL: Completely clear and replace body
-                document.body.innerHTML = `
-                    <div style="height:100dvh; display:flex; align-items:center; justify-content:center; background-color:#050505; color:#0f0; font-family:'Share Tech Mono', monospace; flex-direction:column; text-align:center;" class="crt">
-                        <div class="scanline"></div>
-                        <h1 class="glitch-text">Thank You,<br>Have a Nice Day.</h1>
-                    </div>
-                `;
-
-                // TRAP: Lock the back button
-                history.pushState(null, document.title, location.href);
-                window.addEventListener('popstate', function (event) {
-                    history.pushState(null, document.title, location.href);
-                });
+                // Hapus timer dari storage
+                localStorage.removeItem('hacker_endTime');
+                
+                // --- NEW: SIMPAN STATUS AKTIVASI SECARA PERMANEN ---
+                localStorage.setItem('hacker_system_activated', 'true');
+                
+                // Tampilkan layar Thank You
+                showThankYouScreen();
 
             } else {
                 errorMsg.classList.remove('hidden');
@@ -669,17 +696,29 @@
             }
         }
 
-        document.getElementById('activation-password').addEventListener('keypress', function (e) {
+        // Jalankan checkPassword jika ditekan Enter
+        document.getElementById('activation-password')?.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 checkPassword();
             }
         });
 
-        // Init everything on load
+        // --- NEW: LOGIKA SAAT HALAMAN DIMUAT (LOAD/REFRESH) ---
         window.onload = () => {
-            // Slight delay to fade in the dashboard naturally
-            document.getElementById('dashboard').classList.remove('opacity-0');
-            document.getElementById('dashboard').classList.add('fade-in');
+            // Cek apakah sistem sudah pernah diaktivasi sebelumnya
+            if (localStorage.getItem('hacker_system_activated') === 'true') {
+                isSystemActive = true;
+                showThankYouScreen();
+                return; // Berhenti di sini, JANGAN memuat dashboard
+            }
+
+            // Jika belum diaktivasi, muat dashboard normal
+            const dash = document.getElementById('dashboard');
+            if (dash) {
+                dash.classList.remove('hidden');
+                dash.classList.remove('opacity-0');
+                dash.classList.add('fade-in');
+            }
             startTimer();
             streamData();
         };
